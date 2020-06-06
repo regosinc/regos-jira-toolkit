@@ -15,6 +15,9 @@
   },
   "dependencies": {
     "@forge/api": "^0.2.0",
-    "@forge/ui": "^0.3.1"
+    "@forge/ui": "^0.3.1",
+    "await-to-js": "^2.1.1",
+    "moment": "^2.24.0",
+    "v4-uuid": "^1.1.0"
   }
 }

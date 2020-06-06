@@ -19,6 +19,8 @@ modules:
   function:
     - key: panel-tasks
       handler: panel-tasks-main.run
+    - key: glance-notes
+      handler: glance-notes-main.run
 app:
   id: 'ari:cloud:ecosystem::app/2020ed89-96cb-4977-b28c-9074bda8581b'
   name: regos-jira-toolkit

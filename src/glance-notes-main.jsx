@@ -38,11 +38,11 @@ const App = () => {
     const updatedNote = values.find(x => x.id === noteToEdit.id);
     updatedNote.note = formData.newNoteField;
     updatedNote.updated = new Date();
-    
+
     const result = await updateUserNotes(issueKey, accountId, values);
 
     if (result) {
-      setStoredNotes(values);    
+      setStoredNotes(values);
       setNoteToEdit({});
       setModalOpen(false);
     } else {
@@ -72,19 +72,19 @@ const App = () => {
 
       {/* No notes */}
       {storedNotes && storedNotes.length == 0 && <Text>**You don't have any note yet**</Text>}
-      
+
       {/* Show existing notes */}
-      {storedNotes && storedNotes.length > 0 && <Text>**Notes**</Text>}
+      {storedNotes && storedNotes.length > 0 && <Text>**You have {storedNotes.length} note{storedNotes.length > 1 ? 's' : ''}**</Text>}
       {storedNotes && storedNotes.length > 0 && storedNotes.map(note => {
         return <Fragment>
           <Text>
             {note.note}
           </Text>
-          <Text>{moment(note.created).format('MM/DD/YY HH:mm:ss')}</Text>
-            <ButtonSet>
-              <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
-              <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
-            </ButtonSet>
+          <Text>Updated at: {moment(note.created).format('MM/DD/YY HH:mm:ss')}</Text>
+          {/* <ButtonSet> */}
+            <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
+            <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
+          {/* </ButtonSet> */}
         </Fragment>
       })}
 

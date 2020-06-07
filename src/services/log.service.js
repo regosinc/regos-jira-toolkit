@@ -11,6 +11,10 @@ export function logError(appType, message) {
     console.error(`${appType} - ${message}`);
 }
 
+export function logWarning(appType, message) {
+    console.warn(`${appType} - ${message}`);
+}
+
 export function getPrettyfiedJSON(jsonObject) {
     return JSON.stringify(jsonObject, null, 2);
 }

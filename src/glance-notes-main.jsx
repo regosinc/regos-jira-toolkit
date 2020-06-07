@@ -1,7 +1,7 @@
 import ForgeUI, { render, IssueGlance, Fragment, Button, Form, TextArea, useProductContext, useState, ModalDialog, Text, ButtonSet } from '@forge/ui';
 import moment from 'moment';
 
-import { logInfo, getPrettyfiedJSON, APP_TYPE } from './services/log.service';
+import { logInfo, getPrettyfiedJSON, APP_TYPE, logWarning } from './services/log.service';
 import { getUserNotes, addUserNote, updateUserNotes } from './services/notes.service';
 
 const App = () => {
@@ -11,6 +11,9 @@ const App = () => {
   const [noteToEdit, setNoteToEdit] = useState({});
   const [isModalDeleteOpen, setModalDeleteOpen] = useState(false);
   const [noteToDelete, setNoteToDelete] = useState({});
+  const [noteErrorValidation, setNoteErrorValidation] = useState(false);
+
+  const noteMaxLength = 30000;
 
   // Context data
   const context = useProductContext();
@@ -22,32 +25,51 @@ const App = () => {
   // Read user stored data
   const [storedNotes, setStoredNotes] = useState(async () => await getUserNotes(issueKey, accountId));
 
-  const createNewNote = async (formData) => {
-    logInfo(APP_TYPE.GLANCE_NOTES, `Creating new Note: ${getPrettyfiedJSON(formData)}`);
+  const addOrEditNote = async (formData) => {
+    logInfo(APP_TYPE.GLANCE_NOTES, `${(isEdit ? `Editing Note ${noteToEdit.id} ` : 'Creating new Note:')} ${getPrettyfiedJSON(formData)}`);
 
-    const updatedNotes = await addUserNote(issueKey, accountId, formData.newNoteField, storedNotes);
+    if (!validateNote(formData.newNoteField)) {
+      return;
+    }
 
-    setStoredNotes(updatedNotes.sort((a, b) => new Date(b.updated) - new Date(a.updated)));
-    setModalOpen(false);
+    setNoteErrorValidation(false);
+
+    if (!isEdit) {
+      const updatedNotes = await addUserNote(issueKey, accountId, formData.newNoteField, storedNotes);
+
+      setStoredNotes(updatedNotes.sort((a, b) => new Date(b.updated) - new Date(a.updated)));
+      setModalOpen(false);
+
+      logInfo(APP_TYPE.GLANCE_NOTES, `Note created successfully: ${getPrettyfiedJSON(formData)}`);
+    } else {
+      // Edit note
+      const values = [...storedNotes];
+      const updatedNote = values.find(x => x.id === noteToEdit.id);
+      updatedNote.note = formData.newNoteField;
+      updatedNote.updated = new Date();
+
+      const result = await updateUserNotes(issueKey, accountId, values);
+
+      if (result) {
+        setStoredNotes(values);
+        setNoteToEdit({});
+        setModalOpen(false);
+        logInfo(APP_TYPE.GLANCE_NOTES, `Note edited successfully: ${getPrettyfiedJSON(formData)}`);
+      } else {
+        //TODO: Notify ?
+        logInfo(APP_TYPE.GLANCE_NOTES, `Note could not be edited: ${getPrettyfiedJSON(formData)}`);
+      }
+    }
   }
 
-  const editNote = async (formData) => {
-    logInfo(APP_TYPE.GLANCE_NOTES, `Editing Note: ${noteToEdit.id}`);
-
-    const values = [...storedNotes];
-    const updatedNote = values.find(x => x.id === noteToEdit.id);
-    updatedNote.note = formData.newNoteField;
-    updatedNote.updated = new Date();
-
-    const result = await updateUserNotes(issueKey, accountId, values);
-
-    if (result) {
-      setStoredNotes(values);
-      setNoteToEdit({});
-      setModalOpen(false);
-    } else {
-      //TODO: Notify ?
+  const validateNote = (text) => {
+    if (text.length > noteMaxLength) {
+      logWarning(APP_TYPE.GLANCE_NOTES, `Validation error when creating/editing a note, data exceed ${noteMaxLength} chars.`);
+      setNoteErrorValidation(true);
+      return false;
     }
+
+    return true;
   }
 
   const deleteNote = async () => {
@@ -71,7 +93,7 @@ const App = () => {
       <Button text="Add Note" onClick={() => { setIsEdit(false); setModalOpen(true); }} />
 
       {/* No notes */}
-      {storedNotes && storedNotes.length == 0 && <Text>**You don't have any note yet**</Text>}
+      {storedNotes && storedNotes.length == 0 && <Text>**You don't have any notes yet**</Text>}
 
       {/* Show existing notes */}
       {storedNotes && storedNotes.length > 0 && <Text>**You have {storedNotes.length} note{storedNotes.length > 1 ? 's' : ''}**</Text>}
@@ -82,8 +104,8 @@ const App = () => {
           </Text>
           <Text>Updated at: {moment(note.created).format('MM/DD/YY HH:mm:ss')}</Text>
           {/* <ButtonSet> */}
-            <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
-            <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
+          <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
+          <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
           {/* </ButtonSet> */}
         </Fragment>
       })}
@@ -91,8 +113,9 @@ const App = () => {
       {/* Create new note / edit modal */}
       {isModalOpen && (
         <ModalDialog header={isEdit ? "Edit Note" : "Add new Note"} onClose={() => setModalOpen(false)}>
-          <Form onSubmit={isEdit ? editNote : createNewNote} submitButtonText={isEdit ? "Edit" : "Add Note"}>
+          <Form onSubmit={addOrEditNote} submitButtonText={isEdit ? "Edit" : "Add Note"}>
             <TextArea isRequired={true} name="newNoteField" label={isEdit ? "Edit Note" : "New Note"} placeholder="Type your new note ... " defaultValue={isEdit ? noteToEdit.note : ''} />
+            {noteErrorValidation && <Text>Note has to be less than {noteMaxLength} chars.</Text>}
           </Form>
         </ModalDialog>
       )}

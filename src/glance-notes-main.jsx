@@ -9,6 +9,8 @@ const App = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [noteToEdit, setNoteToEdit] = useState({});
+  const [isModalDeleteOpen, setModalDeleteOpen] = useState(false);
+  const [noteToDelete, setNoteToDelete] = useState({});
 
   // Context data
   const context = useProductContext();
@@ -48,15 +50,18 @@ const App = () => {
     }
   }
 
-  const deleteNote = async (noteId) => {
-    logInfo(APP_TYPE.GLANCE_NOTES, `Delete Note: ${noteId}`);
+  const deleteNote = async () => {
+    logInfo(APP_TYPE.GLANCE_NOTES, `Delete Note: ${noteToDelete.id}`);
 
-    const notesWithRemoved = storedNotes.filter(x => x.id !== noteId);
+    const notesWithRemoved = storedNotes.filter(x => x.id !== noteToDelete.id);
 
     const result = await updateUserNotes(issueKey, accountId, notesWithRemoved);
 
-    if (result)
+    if (result) {
       setStoredNotes(notesWithRemoved);
+      setNoteToDelete({});
+      setModalDeleteOpen(false);
+    }
     //else 
     // TODO: Show notification ?
   }
@@ -78,7 +83,7 @@ const App = () => {
           <Text>{moment(note.created).format('MM/DD/YY HH:mm:ss')}</Text>
             <ButtonSet>
               <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
-              <Button text="Delete" onClick={() => deleteNote(note.id)} />
+              <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
             </ButtonSet>
         </Fragment>
       })}
@@ -88,6 +93,16 @@ const App = () => {
         <ModalDialog header={isEdit ? "Edit Note" : "Add new Note"} onClose={() => setModalOpen(false)}>
           <Form onSubmit={isEdit ? editNote : createNewNote} submitButtonText={isEdit ? "Edit" : "Add Note"}>
             <TextArea isRequired={true} name="newNoteField" label={isEdit ? "Edit Note" : "New Note"} placeholder="Type your new note ... " defaultValue={isEdit ? noteToEdit.note : ''} />
+          </Form>
+        </ModalDialog>
+      )}
+
+      {/* Delete modal */}
+      {isModalDeleteOpen && (
+        <ModalDialog header="Delete Note" onClose={() => setModalDeleteOpen(false)}>
+          <Form onSubmit={deleteNote} submitButtonText="Delete">
+            <Text>Are you sure you want to delete the note ?</Text>
+            {/* <TextArea isRequired={true} name="newNoteField" label={isEdit ? "Edit Note" : "New Note"} placeholder="Type your new note ... " defaultValue={isEdit ? noteToEdit.note : ''} /> */}
           </Form>
         </ModalDialog>
       )}

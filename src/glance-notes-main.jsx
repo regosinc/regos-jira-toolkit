@@ -35,6 +35,7 @@ const App = () => {
     const values = [...storedNotes];
     const updatedNote = values.find(x => x.id === noteToEdit.id);
     updatedNote.note = formData.newNoteField;
+    updatedNote.updated = new Date();
     
     const result = await updateUserNotes(issueKey, accountId, values);
 

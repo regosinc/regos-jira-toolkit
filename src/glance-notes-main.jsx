@@ -25,7 +25,7 @@ const App = () => {
 
     const updatedNotes = await addUserNote(issueKey, accountId, formData.newNoteField, storedNotes);
 
-    setStoredNotes(updatedNotes);
+    setStoredNotes(updatedNotes.sort((a, b) => new Date(b.updated) - new Date(a.updated)));
     setModalOpen(false);
   }
 

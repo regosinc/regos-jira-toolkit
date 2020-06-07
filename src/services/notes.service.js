@@ -18,9 +18,12 @@ export const getUserNotes = async (issueKey, accountId) => {
         //TODO: Show notification to user ?
         return null;
     }
-    logInfo(APP_TYPE.GLANCE_NOTES, `Data: ${JSON.stringify(userNotesData)}`);
 
     logInfo(APP_TYPE.GLANCE_NOTES, `Loaded notes for user: ${accountId} and Issue Key: ${issueKey}. Data:  ${getPrettyfiedJSON(userNotesData)}`);
+
+    if (userNotesData)
+        return userNotesData.sort((a, b) => new Date(b.updated) - new Date(a.updated));
+
     return userNotesData || [];
 }
 
@@ -50,7 +53,7 @@ export const addUserNote = async (issueKey, accountId, note, allNotes) => {
 export const updateUserNotes = async (issueKey, accountId, allNotes) => {
     accountId = replaceInvalidCharsForObjectKey(accountId);
     
-    const [error,] = await to(api.store.onJiraIssue(issueKey).set(`${storedDataKey}${accountId}`, allNotes));
+    const [error,] = await to(api.store.onJiraIssue(issueKey).set(`${storedDataKey}${accountId}`, allNotes.sort((a, b) => new Date(b.updated) - new Date(a.updated))));
 
     if (error) {
         logError(APP_TYPE.GLANCE_NOTES, `Error updating notes for user: ${accountId}, Issue Key: ${issueKey} and Notes: ${JSON.stringify(allNotes)}. Reason: ${JSON.stringify(error)} - ${error}.`);

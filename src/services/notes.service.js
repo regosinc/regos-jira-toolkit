@@ -24,29 +24,41 @@ export const getUserNotes = async (issueKey, accountId) => {
     return userNotesData || [];
 }
 
-export const createUserNote = async (issueKey, accountId, note, allNotes) => {
+export const addUserNote = async (issueKey, accountId, note, allNotes) => {
     accountId = replaceInvalidCharsForObjectKey(accountId);
 
     const newNote = {
         id: uuid(),
         note,
         created: new Date(),
-        updated: new Date()        
+        updated: new Date()
     };
 
     const notes = allNotes.map(x => x);
     notes.push(newNote);
 
-    const [error, addedNote] = await to(api.store.onJiraIssue(issueKey).set(`${storedDataKey}${accountId}`, notes));
+    const updateNotes = await updateUserNotes(issueKey, accountId, notes);
 
-    if (error) {
-        logError(APP_TYPE.GLANCE_NOTES, `Error creating a new note for user: ${accountId}, Issue Key: ${issueKey} and Note: ${getPrettyfiedJSON(newNote)}. Reason: ${error}.`);
-        //TODO: Show notification to user ?
+    if (updateNotes) {
+        return notes;
+    }
+    else {
         return allNotes;
     }
+}
 
-    logInfo(APP_TYPE.GLANCE_NOTES, `New note created for user: ${accountId}, Issue Key: ${issueKey} and note: ${getPrettyfiedJSON(newNote)}.`)
-    return notes;
+export const updateUserNotes = async (issueKey, accountId, allNotes) => {
+    accountId = replaceInvalidCharsForObjectKey(accountId);
+    
+    const [error,] = await to(api.store.onJiraIssue(issueKey).set(`${storedDataKey}${accountId}`, allNotes));
+
+    if (error) {
+        logError(APP_TYPE.GLANCE_NOTES, `Error updating notes for user: ${accountId}, Issue Key: ${issueKey} and Notes: ${JSON.stringify(allNotes)}. Reason: ${JSON.stringify(error)} - ${error}.`);
+        return false;
+    }
+
+    logInfo(APP_TYPE.GLANCE_NOTES, `Notes updated successfully for user: ${accountId}, Issue Key: ${issueKey} and Notes: ${JSON.stringify(allNotes)}.`)
+    return true;
 }
 
 const replaceInvalidCharsForObjectKey = (text) => {

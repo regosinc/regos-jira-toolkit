@@ -14,8 +14,8 @@ modules:
   'jira:issuePanel':
     - key: regos-jira-toolkit-panel-tasks
       function: panel-tasks      
-      title: Regos JIRA Toolkit - Tasks
-      description: A Todo list for your JIRA Issues
+      title: Regos JIRA Toolkit - Checklist
+      description: A Checklist for your JIRA Issues
   function:
     - key: panel-tasks
       handler: panel-tasks-main.run

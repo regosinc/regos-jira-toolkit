@@ -102,7 +102,7 @@ const App = () => {
           <Text>
             {note.note}
           </Text>
-          <Text>Updated at: {moment(note.created).format('MM/DD/YY HH:mm:ss')}</Text>
+          <Text>Updated at: {moment(note.updated).format('MM/DD/YY HH:mm:ss')}</Text>
           {/* <ButtonSet> */}
           <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
           <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
@@ -112,7 +112,7 @@ const App = () => {
 
       {/* Create new note / edit modal */}
       {isModalOpen && (
-        <ModalDialog header={isEdit ? "Edit Note" : "Add new Note"} onClose={() => setModalOpen(false)}>
+        <ModalDialog header={isEdit ? "Edit Note" : "Add Note"} onClose={() => setModalOpen(false)}>
           <Form onSubmit={addOrEditNote} submitButtonText={isEdit ? "Edit" : "Add Note"}>
             <TextArea isRequired={true} name="newNoteField" label={isEdit ? "Edit Note" : "New Note"} placeholder="Type your new note ... " defaultValue={isEdit ? noteToEdit.note : ''} />
             {noteErrorValidation && <Text>Note has to be less than {noteMaxLength} chars.</Text>}
@@ -124,8 +124,7 @@ const App = () => {
       {isModalDeleteOpen && (
         <ModalDialog header="Delete Note" onClose={() => setModalDeleteOpen(false)}>
           <Form onSubmit={deleteNote} submitButtonText="Delete">
-            <Text>Are you sure you want to delete the note ?</Text>
-            {/* <TextArea isRequired={true} name="newNoteField" label={isEdit ? "Edit Note" : "New Note"} placeholder="Type your new note ... " defaultValue={isEdit ? noteToEdit.note : ''} /> */}
+            <Text>**Are you sure you want to delete the note ?**</Text>            
           </Form>
         </ModalDialog>
       )}

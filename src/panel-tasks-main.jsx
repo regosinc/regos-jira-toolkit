@@ -11,6 +11,7 @@ const App = () => {
   const [isModalDeleteOpen, setModalDeleteOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState({});
   const [taskErrorValidation, setTaskErrorValidation] = useState(false);
+  const [isTaskDeletedModalOpen, setTaskDeletedModalOpen] = useState(false);
 
   const taskMaxLength = 512;
 
@@ -24,6 +25,25 @@ const App = () => {
   // Read user stored data
   const [storedTasks, setStoredTasks] = useState(async () => await getTasks(issueKey));
 
+  const editButtonClicked = async (task) => {
+    const refreshedTasks = await getTasks(issueKey);
+
+    setStoredTasks(refreshedTasks);
+
+    // Check if the task exists and also if it has changes
+    const taskRefreshed = refreshedTasks.find(x => x.id === task.id);
+
+    if (!taskRefreshed) {
+      logInfo(APP_TYPE.PANEL_TASKS, `The task to edit (${task.id}) has been removed.`);
+      setTaskDeletedModalOpen(true);
+      return;
+    }
+    
+    setIsEdit(true); 
+    setModalOpen(true); 
+    setTaskToEdit(taskRefreshed);
+  }
+
   const addOrEditTask = async (formData) => {
     logInfo(APP_TYPE.PANEL_TASKS, `${(isEdit ? `Editing Task ${taskToEdit.id} ` : 'Creating new Task:')} ${getPrettyfiedJSON(formData)}`);
 
@@ -33,8 +53,10 @@ const App = () => {
 
     setTaskErrorValidation(false);
 
+    const refreshedTasks = await getTasks(issueKey);
+
     if (!isEdit) {
-      const updatedTasks = await addTask(issueKey, accountId, formData.newTaskField, storedTasks);
+      const updatedTasks = await addTask(issueKey, accountId, formData.newTaskField, refreshedTasks);
 
       setStoredTasks(updatedTasks);
       setModalOpen(false);
@@ -74,14 +96,24 @@ const App = () => {
 
   const deleteTask = async () => {
     logInfo(APP_TYPE.PANEL_TASKS, `Delete Task: ${taskToDelete.id}`);
+    const refreshedTasks = await getTasks(issueKey);
+
+    const updateTaskRefreshed = refreshedTasks.find(x => x.id === taskToDelete.id);
+
+    if (!updateTaskRefreshed) {
+      // Already removed, no changes needed
+      logInfo(APP_TYPE.PANEL_TASKS, `Tried to delete task: ${getPrettyfiedJSON(taskToDelete)} resulted in the task was removed by someone else.`);
+      setStoredTasks(refreshedTasks);
+      return;
+    }
 
     const tasksWithRemoved = storedTasks.filter(x => x.id !== taskToDelete.id);
 
-    const result = await updateTasks(issueKey, tasksWithRemoved);
+    const result = await updateTasks(issueKey, refreshedTasks);
 
     if (result) {
       setStoredTasks(tasksWithRemoved);
-      setTaskToDelete({});
+      setTaskToDelete(null);
       setModalDeleteOpen(false);
     }
     //else 
@@ -89,21 +121,38 @@ const App = () => {
   }
 
   const taskFinishedChanged = async (task) => {
-    const values = [...storedTasks];
-    const updatedTask = values.find(x => x.id === task.id);
+    const refreshedTasks = await getTasks(issueKey);
 
-    updatedTask.finished = !updatedTask.finished;
-    updatedTask.updated = new Date();
-    updatedTask.updatedby = accountId;
+    const updateTaskRefreshed = refreshedTasks.find(x => x.id === task.id);
 
-    const result = await updateTasks(issueKey, values);
+    if (!updateTaskRefreshed) {
+      logInfo(APP_TYPE.PANEL_TASKS, `Tried to change the state of the task: ${getPrettyfiedJSON(task)} resulted in the task was removed by someone else.`);
+      setTaskDeletedModalOpen(true);
+      setStoredTasks(refreshedTasks);
+      return;
+    }
 
-    if (result) {
-      setStoredTasks(values);
-      logInfo(APP_TYPE.PANEL_TASKS, `Status Task changed successfully: ${getPrettyfiedJSON(updatedTask)}`);
+    if (updateTaskRefreshed.finished === !task.finished) {
+      // No changes to be applied, someone changed before the user.
+      logInfo(APP_TYPE.PANEL_TASKS, `Tried to change the state of the task: ${getPrettyfiedJSON(task)} resulted in the task was updated by someone else and no changes are needed.`);      
+      setStoredTasks(refreshedTasks);
     } else {
-      //TODO: Notify ?
-      logInfo(APP_TYPE.PANEL_TASKS, `Status Task could not be changed: ${getPrettyfiedJSON(updatedTask)}`);
+      const values = [...refreshedTasks];
+      const taskToUpdate = values.find(x => x.id === task.id);
+
+      taskToUpdate.finished = !taskToUpdate.finished;
+      taskToUpdate.updated = new Date();
+      taskToUpdate.updatedby = accountId;
+
+      const result = await updateTasks(issueKey, values);
+
+      if (result) {
+        setStoredTasks(values);
+        logInfo(APP_TYPE.PANEL_TASKS, `Status Task changed successfully: ${getPrettyfiedJSON(taskToUpdate)}`);
+      } else {
+        setStoredTasks(refreshedTasks);
+        logInfo(APP_TYPE.PANEL_TASKS, `Status Task could not be changed: ${getPrettyfiedJSON(taskToUpdate)}`);
+      }
     }
   }
 
@@ -151,7 +200,7 @@ const App = () => {
                 <Avatar accountId={task.updatedby} />
               </Cell>
               <Cell>
-                <Button text="✎" onClick={() => { setIsEdit(true); setModalOpen(true); setTaskToEdit(task); }} />
+                <Button text="✎" onClick={() => editButtonClicked(task) } />
               </Cell>
               <Cell>
                 <Button text="⨯" onClick={() => { setModalDeleteOpen(true); setTaskToDelete(task); }} />
@@ -180,6 +229,15 @@ const App = () => {
             <Form onSubmit={deleteTask} submitButtonText="Delete">
               <Text>**Are you sure you want to delete the task:** {taskToDelete.description} ?</Text>
             </Form>
+          </ModalDialog>
+        )
+      }
+
+      {/* Task is deleted modal */}
+      {
+        isTaskDeletedModalOpen && (
+          <ModalDialog header="Task has changes" onClose={() => setTaskDeletedModalOpen(false) } closeButtonText="Ok">
+              <Text>**The task you are trying to edit has been removed by another user.**</Text>            
           </ModalDialog>
         )
       }

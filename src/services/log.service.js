@@ -1,6 +1,8 @@
 export const APP_TYPE = {
     GLANCE_NOTES: 'GLANCE NOTES',
-    PANEL_TASKS: 'PANEL TASKS'
+    PANEL_TASKS: 'PANEL TASKS',
+    PANEL_MEMBERS: 'PAANEL MEMBERS',
+    TIME_TRACKER: 'TIME TRACKER'
 }
 
 export function logInfo(appType, message) {

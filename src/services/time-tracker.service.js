@@ -1,5 +1,4 @@
 import api from '@forge/api';
-import uuid from 'v4-uuid';
 import { to } from 'await-to-js';
 
 import { logInfo, logError, getPrettyfiedJSON, APP_TYPE } from './log.service';

@@ -1,4 +1,4 @@
-import ForgeUI, { render, IssueGlance, useProductContext, Text, Button, useState, Fragment, Table, Head, Row, Cell, Lozenge, ModalDialog, Form } from '@forge/ui';
+import ForgeUI, { render, IssueGlance, useProductContext, Text, Button, useState, Fragment, Table, Head, Row, Cell, StatusLozenge, ModalDialog, Form } from '@forge/ui';
 import moment from 'moment';
 import ta from 'time-ago';
 import uuid from 'v4-uuid';
@@ -92,7 +92,7 @@ const App = () => {
       setModalDeleteOpen(false);
     }
     //else 
-    // TODO: Show notification ?
+    // TODO: Show notification ? 
   }
 
   const getTotalTime = () => {
@@ -100,7 +100,10 @@ const App = () => {
     storedTracks.forEach(track => {
       totalTime += track.totalTime;
     });
-    return ta.ago(new Date() - (totalTime * 1000), true);
+    
+    logInfo(APP_TYPE.TIME_TRACKER, `Total Time: ${totalTime}`);
+
+    return `   ${ta.ago(new Date() - (totalTime * 1000), true)}`;
   }
 
   return (
@@ -113,7 +116,7 @@ const App = () => {
 
       {storedTracks && storedTracks.length > 0 &&
         <Fragment>
-          <Text>**Total time spent:**<Lozenge text={`  ${getTotalTime()}`} appearance="success" /></Text>
+          <Text>**Total time spent:**<StatusLozenge text={getTotalTime()} appearance="success" /></Text>
           
           <Table>
             <Head>

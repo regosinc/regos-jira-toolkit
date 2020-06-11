@@ -106,7 +106,7 @@ const App = () => {
   return (
     <Fragment>
       <Button text={!isTracking ? 'Start Tracking' : 'Stop Tracking'} onClick={!isTracking ? createNewTrack : stopTracking}></Button>
-      {isTracking && <Text>**You are currently tracking the time on this issue** {timeSpent}</Text>}
+      {isTracking && <Text>**You are currently tracking the time on this issue**</Text>}
 
       {/* No Time Tracks */}
       {storedTracks && storedTracks.length == 0 && <Text>You don't have any time register yet</Text>}

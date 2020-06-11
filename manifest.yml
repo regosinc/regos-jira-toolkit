@@ -5,12 +5,11 @@ modules:
       title: Regos JIRA Toolkit - Personal Notes
       description: Regos Jira Toolkit - Personal Notes
       label: Personal Notes
-      #If they update this, we can show the number of notes on the badge.
-      #status: 
-      #  type: 'badge'
-      #  value: 
-      #    label: '3' # will show the current number of personal notes
-      #    type: 'default'
+    - key: regos-jira-toolkit-time-tracker
+      function: glance-time-tracker
+      title: Regos JIRA Toolkit - Time Tracker
+      description: A personal time tracker for issues
+      label: Personal Time Tracker     
   'jira:issuePanel':
     - key: regos-jira-toolkit-panel-tasks
       function: panel-tasks      
@@ -19,11 +18,7 @@ modules:
     - key: regos-jira-toolkit-issue-members
       function: panel-members
       title: Regos JIRA Toolkit - Issue Members
-      description: A member list for Issues
-    - key: regos-jira-toolkit-time-tracker
-      function: panel-time-tracker
-      title: Regos JIRA Toolkit - Time Tracker
-      description: A personal time tracker for issues
+      description: A member list for Issues    
   function:
     - key: panel-tasks
       handler: panel-tasks-main.run
@@ -31,8 +26,8 @@ modules:
       handler: glance-notes-main.run
     - key: panel-members
       handler: panel-members-main.run
-    - key: panel-time-tracker
-      handler: panel-time-tracker-main.run
+    - key: glance-time-tracker
+      handler: glance-time-tracker-main.run
 app:
   id: 'ari:cloud:ecosystem::app/2020ed89-96cb-4977-b28c-9074bda8581b'
   name: regos-jira-toolkit

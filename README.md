@@ -12,6 +12,16 @@ If you have issues during the login on Forge, as for 06/06/20 we need to add thi
 export FORGE_EMAIL=[rds]@gmail.com // RDS gmail account is the only one with access to Forge beta right now
 export FORGE_API_TOKEN= //Generated Token from the atlassian user 
 ```
+
+To set env vars 
+
+forge variables:set FORGE_USER_VAR_ENV dev --environment
+
+We need to set FORGE_USER_VAR_ when tunneling, otherwise the variable name.
+
+Variables
+ENV=devevelopment, staging or production
+
 ## Requirements
 
 See [Set up Forge](https://developer.atlassian.com/platform/forge/set-up-forge/) for instructions to get set up.

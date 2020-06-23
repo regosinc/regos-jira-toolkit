@@ -17,8 +17,9 @@
     "@forge/api": "^0.2.0",
     "@forge/ui": "^0.4.0",
     "await-to-js": "^2.1.1",
+    "humanize-duration": "^3.23.1",
     "moment": "^2.24.0",
-    "time-ago": "^0.2.1",
+    "moment-timezone": "^0.5.31",
     "v4-uuid": "^1.1.0"
   }
 }

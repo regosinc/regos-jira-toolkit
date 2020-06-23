@@ -1,11 +1,11 @@
 import ForgeUI, { render, IssueGlance, useProductContext, Text, Button, useState, Fragment, Table, Head, Row, Cell, StatusLozenge, ModalDialog, Form } from '@forge/ui';
 import moment from 'moment-timezone';
-import ta from 'time-ago';
 import uuid from 'v4-uuid';
+import humanizeDuration from 'humanize-duration';
 
 import { logInfo, getPrettyfiedJSON, APP_TYPE, logWarning } from './services/log.service';
 import { getUserTimeTracks, addTimeTracker, updateTimeTrackers } from './services/time-tracker.service';
-import { getMyself } from './services/common.service';
+import { getTimezone } from './services/common.service';
 
 const App = () => {
   // Context data
@@ -16,6 +16,26 @@ const App = () => {
   const [isModalDeleteOpen, setModalDeleteOpen] = useState(false);
   const [trackToDelete, setTrackToDelete] = useState({});
   const [currentTimeTracked, setCurrentTimeTracked] = useState('');
+  const timeOptions = {
+    round: true,
+    delimiter: ", ",
+    spacer: ""
+  }
+  const shortEnglishHumanizer = humanizeDuration.humanizer({
+    language: "shortEn",
+    languages: {
+      shortEn: {
+        y: () => "y",
+        mo: () => "mo",
+        w: () => "w",
+        d: () => "d",
+        h: () => "h",
+        m: () => "m",
+        s: () => "s",
+        ms: () => "ms",
+      },
+    },
+  });
 
   const accountId = context.accountId;
 
@@ -43,7 +63,7 @@ const App = () => {
   }
 
   const [storedTracks, setStoredTracks] = useState(async () => await getTracks(issueKey, accountId));
-  const [timeZone, setTimeZone] = useState(async () => { const myself = await getMyself(); return myself.timeZone; });
+  const [timeZone, setTimeZone] = useState(async () => await getTimezone());
 
   logInfo(APP_TYPE.TIME_TRACKER, `Issue Key: ${issueKey}`);
 
@@ -105,12 +125,11 @@ const App = () => {
 
     logInfo(APP_TYPE.TIME_TRACKER, `Total Time: ${totalTime}`);
 
-    return `     ${ta.ago(new Date() - (totalTime * 1000), true)}`;
+    return ` ${shortEnglishHumanizer(totalTime * 1000, timeOptions)}`;
   }
 
   const refreshTimer = () => {
-    const currentTime = Math.round((new Date().getTime() - new Date(trackingInfo.startTime).getTime()) / 1000);
-    setCurrentTimeTracked(ta.ago(new Date() - (currentTime * 1000), true));
+    setCurrentTimeTracked(shortEnglishHumanizer(new Date().getTime() - new Date(trackingInfo.startTime).getTime(), timeOptions));
   }
 
   return (
@@ -145,7 +164,7 @@ const App = () => {
             {storedTracks.map(track => (
               <Row>
                 <Cell>
-                  <Text content={`**${ta.ago(new Date() - (track.totalTime * 1000), true)}**`} />
+                  <Text content={`**${shortEnglishHumanizer(track.totalTime * 1000, timeOptions)}**`} />
                 </Cell>
                 <Cell>
                   <Text content={`_${moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').substring(0, moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').indexOf(' '))}_ ${moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').substring(moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').indexOf(' ') + 1)}`} />

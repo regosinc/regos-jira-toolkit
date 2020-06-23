@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 
 import { logInfo, getPrettyfiedJSON, APP_TYPE, logWarning } from './services/log.service';
 import { getUserNotes, addUserNote, updateUserNotes } from './services/notes.service';
-import { getMyself } from './services/common.service';
+import { getTimezone } from './services/common.service';
 
 const App = () => {
   // Modal
@@ -25,7 +25,7 @@ const App = () => {
 
   // Read user stored data
   const [storedNotes, setStoredNotes] = useState(async () => await getUserNotes(issueKey, accountId));
-  const [timeZone, setTimeZone] = useState(async () => { const myself = await getMyself(); return myself.timeZone; });
+  const [timeZone, setTimeZone] = useState(async () => await getTimezone());
 
   const addOrEditNote = async (formData) => {
     logInfo(APP_TYPE.GLANCE_NOTES, `${(isEdit ? `Editing Note ${noteToEdit.id} ` : 'Creating new Note:')} ${getPrettyfiedJSON(formData)}`);

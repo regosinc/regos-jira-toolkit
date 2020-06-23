@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 
 import { logInfo, getPrettyfiedJSON, APP_TYPE, logWarning } from './services/log.service';
 import { getTasks, addTask, updateTasks } from './services/tasks.service';
-import { getMyself } from './services/common.service';
+import { getTimezone } from './services/common.service';
 
 const App = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -25,7 +25,7 @@ const App = () => {
 
   // Read user stored data
   const [storedTasks, setStoredTasks] = useState(async () => await getTasks(issueKey));
-  const [timeZone, setTimeZone] = useState(async () => { const myself = await getMyself(); return myself.timeZone; });
+  const [timeZone, setTimeZone] = useState(async () => await await getTimezone());
 
   const editButtonClicked = async (task) => {
     const refreshedTasks = await getTasks(issueKey);

@@ -1,10 +1,11 @@
 import ForgeUI, { render, IssueGlance, useProductContext, Text, Button, useState, Fragment, Table, Head, Row, Cell, StatusLozenge, ModalDialog, Form } from '@forge/ui';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import ta from 'time-ago';
 import uuid from 'v4-uuid';
 
 import { logInfo, getPrettyfiedJSON, APP_TYPE, logWarning } from './services/log.service';
 import { getUserTimeTracks, addTimeTracker, updateTimeTrackers } from './services/time-tracker.service';
+import { getMyself } from './services/common.service';
 
 const App = () => {
   // Context data
@@ -14,6 +15,7 @@ const App = () => {
   const [isTracking, setIsTracking] = useState(false);
   const [isModalDeleteOpen, setModalDeleteOpen] = useState(false);
   const [trackToDelete, setTrackToDelete] = useState({});
+  const [currentTimeTracked, setCurrentTimeTracked] = useState('');
 
   const accountId = context.accountId;
 
@@ -41,7 +43,7 @@ const App = () => {
   }
 
   const [storedTracks, setStoredTracks] = useState(async () => await getTracks(issueKey, accountId));
-
+  const [timeZone, setTimeZone] = useState(async () => { const myself = await getMyself(); return myself.timeZone; });
 
   logInfo(APP_TYPE.TIME_TRACKER, `Issue Key: ${issueKey}`);
 
@@ -100,34 +102,41 @@ const App = () => {
     storedTracks.forEach(track => {
       totalTime += track.totalTime;
     });
-    
+
     logInfo(APP_TYPE.TIME_TRACKER, `Total Time: ${totalTime}`);
 
-    return `   ${ta.ago(new Date() - (totalTime * 1000), true)}`;
+    return `     ${ta.ago(new Date() - (totalTime * 1000), true)}`;
+  }
+
+  const refreshTimer = () => {
+    const currentTime = Math.round((new Date().getTime() - new Date(trackingInfo.startTime).getTime()) / 1000);
+    setCurrentTimeTracked(ta.ago(new Date() - (currentTime * 1000), true));
   }
 
   return (
     <Fragment>
       <Button text={!isTracking ? 'Start Tracking' : 'Stop Tracking'} onClick={!isTracking ? createNewTrack : stopTracking}></Button>
-      {isTracking && <Text>**You are currently tracking the time on this issue**</Text>}
+      {isTracking && <Text>**You are currently tracking the time on this issue. Click on the button to see the current time spent**</Text>}
+
+      {isTracking && <Button text={`↻  Spent Time${currentTimeTracked ? ': ' + currentTimeTracked : ''}`} onClick={refreshTimer}></Button>}
 
       {/* No Time Tracks */}
       {storedTracks && storedTracks.length == 0 && <Text>You don't have any time register yet</Text>}
 
       {storedTracks && storedTracks.length > 0 &&
         <Fragment>
-          <Text>**Total time spent:**<StatusLozenge text={getTotalTime()} appearance="success" /></Text>
-          
+          <Text>**Total Time spent on the Issue:**<StatusLozenge text={getTotalTime()} appearance="success" /></Text>
+
           <Table>
             <Head>
+              <Cell>
+                <Text content="Time" />
+              </Cell>
               <Cell>
                 <Text content="Started" />
               </Cell>
               <Cell>
                 <Text content="Finished" />
-              </Cell>
-              <Cell>
-                <Text content="Time" />
               </Cell>
               <Cell>
                 <Text content="" />
@@ -136,14 +145,15 @@ const App = () => {
             {storedTracks.map(track => (
               <Row>
                 <Cell>
-                  <Text content={moment(track.startTime).format('MM/DD/YY HH:mm:ss')} />
+                  <Text content={`**${ta.ago(new Date() - (track.totalTime * 1000), true)}**`} />
                 </Cell>
                 <Cell>
-                  <Text content={moment(track.endTime).format('MM/DD/YY HH:mm:ss')} />
+                  <Text content={`_${moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').substring(0, moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').indexOf(' '))}_ ${moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').substring(moment(track.startTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').indexOf(' ') + 1)}`} />
                 </Cell>
                 <Cell>
-                  <Text content={ta.ago(new Date() - (track.totalTime * 1000), true)} />
+                <Text content={`_${moment(track.endTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').substring(0, moment(track.endTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').indexOf(' '))}_ ${moment(track.endTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').substring(moment(track.endTime).tz(timeZone).format('MM/DD/YY HH:mm:ss').indexOf(' ') + 1)}`} />
                 </Cell>
+
                 <Cell>
                   <Button text="⨯" onClick={() => { setModalDeleteOpen(true); setTrackToDelete(track); }} />
                 </Cell>

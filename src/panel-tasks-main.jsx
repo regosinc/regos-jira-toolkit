@@ -1,8 +1,9 @@
 import ForgeUI, { render, IssuePanel, Fragment, Button, Form, TextArea, useProductContext, useState, ModalDialog, Text, Table, Head, Row, Cell, Avatar } from '@forge/ui';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import { logInfo, getPrettyfiedJSON, APP_TYPE, logWarning } from './services/log.service';
 import { getTasks, addTask, updateTasks } from './services/tasks.service';
+import { getMyself } from './services/common.service';
 
 const App = () => {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -24,6 +25,7 @@ const App = () => {
 
   // Read user stored data
   const [storedTasks, setStoredTasks] = useState(async () => await getTasks(issueKey));
+  const [timeZone, setTimeZone] = useState(async () => { const myself = await getMyself(); return myself.timeZone; });
 
   const editButtonClicked = async (task) => {
     const refreshedTasks = await getTasks(issueKey);
@@ -191,10 +193,10 @@ const App = () => {
                 <Button text={task.finished === true ? '☑️' : '☐'} onClick={() => taskFinishedChanged(task)}></Button>
               </Cell>
               <Cell>
-                <Text content={task.description} />
+                <Text content={`**${task.description.trim()}**`} />
               </Cell>
               <Cell>
-                <Text content={moment(task.updated).format('MM/DD/YY HH:mm:ss')} />
+                <Text content={moment(task.updated).tz(timeZone).format('MM/DD/YY HH:mm:ss')} />
               </Cell>
               <Cell>
                 <Avatar accountId={task.updatedby} />

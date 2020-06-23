@@ -1,8 +1,9 @@
 import ForgeUI, { render, IssueGlance, Fragment, Button, Form, TextArea, useProductContext, useState, ModalDialog, Text, ButtonSet } from '@forge/ui';
-import moment from 'moment';
+import moment from 'moment-timezone';
 
 import { logInfo, getPrettyfiedJSON, APP_TYPE, logWarning } from './services/log.service';
 import { getUserNotes, addUserNote, updateUserNotes } from './services/notes.service';
+import { getTimezone } from './services/common.service';
 
 const App = () => {
   // Modal
@@ -24,6 +25,7 @@ const App = () => {
 
   // Read user stored data
   const [storedNotes, setStoredNotes] = useState(async () => await getUserNotes(issueKey, accountId));
+  const [timeZone, setTimeZone] = useState(async () => await getTimezone());
 
   const addOrEditNote = async (formData) => {
     logInfo(APP_TYPE.GLANCE_NOTES, `${(isEdit ? `Editing Note ${noteToEdit.id} ` : 'Creating new Note:')} ${getPrettyfiedJSON(formData)}`);
@@ -102,11 +104,11 @@ const App = () => {
           <Text>
             {note.note}
           </Text>
-          <Text>Updated at: {moment(note.updated).format('MM/DD/YY HH:mm:ss')}</Text>
-          {/* <ButtonSet> */}
-          <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
-          <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
-          {/* </ButtonSet> */}
+          <Text>_Updated at: {moment(note.updated).tz(timeZone).format('MM/DD/YY HH:mm:ss')}_</Text>
+          <ButtonSet>
+            <Button text="Edit" onClick={() => { setIsEdit(true); setModalOpen(true); setNoteToEdit(note); }} />
+            <Button text="Delete" onClick={() => { setModalDeleteOpen(true); setNoteToDelete(note); }} />
+          </ButtonSet>
         </Fragment>
       })}
 
@@ -124,7 +126,7 @@ const App = () => {
       {isModalDeleteOpen && (
         <ModalDialog header="Delete Note" onClose={() => setModalDeleteOpen(false)}>
           <Form onSubmit={deleteNote} submitButtonText="Delete">
-            <Text>**Are you sure you want to delete the note ?**</Text>            
+            <Text>**Are you sure you want to delete the note ?**</Text>
           </Form>
         </ModalDialog>
       )}

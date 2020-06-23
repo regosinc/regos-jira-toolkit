@@ -3,7 +3,8 @@ export const APP_TYPE = {
     PANEL_TASKS: 'PANEL TASKS',
     RENDER_MEMBERS: 'RENDER MEMBERS',
     MODAL_MEMBERS: 'MODAL MEMBERS',
-    TIME_TRACKER: 'TIME TRACKER'
+    TIME_TRACKER: 'TIME TRACKER',
+    COMMON: 'COMMON'
 }
 
 export function logInfo(appType, message) {

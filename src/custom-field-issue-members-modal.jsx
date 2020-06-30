@@ -26,6 +26,9 @@ const App = () => {
             logInfo(APP_TYPE.MODAL_MEMBERS, `Loaded properties issue: ${issueKey}. Data: ${getPrettyfiedJSON(data)}`);
 
             return data.value ? data.value.split(',') : [];
+        } else {
+            logError(APP_TYPE.MODAL_MEMBERS, `Error reading properties issue: ${issueKey}. Data: ${getPrettyfiedJSON(result)}`);
+            return [];
         }
     }
 
@@ -37,6 +40,17 @@ const App = () => {
         if (!data.user) return;
 
         const lastVersionMembers = await getApiPropertyMembers();
+
+        // Check if user is already on the list
+        if (lastVersionMembers) {
+            logInfo(APP_TYPE.MODAL_MEMBERS, `Trying to add: ${getPrettyfiedJSON(data.user)}. Existing users: ${getPrettyfiedJSON(lastVersionMembers)}`);
+
+            const userIsAlreadyMember = lastVersionMembers.find(x => x === data.user);
+            if (userIsAlreadyMember) {
+                logInfo(APP_TYPE.MODAL_MEMBERS, `User is already a member for the issue.`);
+                return;
+            }
+        }
 
         lastVersionMembers.push(data.user);
 
@@ -84,38 +98,37 @@ const App = () => {
     }
 
     return (
-        <ModalDialog header="Manage Members" onClose={() => setOpen(false)} closeButtonText="Close" width="large">       
+        <ModalDialog header="Manage Members" onClose={() => setOpen(false)} closeButtonText="Close" width="large">
             <Form onSubmit={addMember} submitButtonText='Add member'>
-                <TextField isRequired={true} name="user" label="User" defaultValue={defaultMemberValue}></TextField>
-                {/* <UserPicker label="User" name="user"></UserPicker> */}
+                <UserPicker label="User" name="user"></UserPicker>
             </Form>
 
-            {currentMembers.length > 0
+            {currentMembers && currentMembers.length > 0
                 ?
                 <Fragment>
-                <Text>**Current Issue Members**</Text>
-                <Table>
-                    <Head>
-                        <Cell>
-                            <Text content="Member" />
-                        </Cell>
-                        <Cell>
-                            <Text content="" />
-                        </Cell>
-                    </Head>
-                    {currentMembers.map(member => (
-                        <Row>
+                    <Text>**Current Issue Members**</Text>
+                    <Table>
+                        <Head>
                             <Cell>
-                                <Avatar accountId={member}></Avatar>
+                                <Text content="Member" />
                             </Cell>
                             <Cell>
-                                <Button text="⨯" onClick={() => { setModalDeleteOpen(true); setMemberToDelete(member); }} />
+                                <Text content="" />
                             </Cell>
-                        </Row>
-                    ))}
-                </Table>
+                        </Head>
+                        {currentMembers.map(member => (
+                            <Row>
+                                <Cell>
+                                    <Avatar accountId={member}></Avatar>
+                                </Cell>
+                                <Cell>
+                                    <Button text="⨯" onClick={() => { setModalDeleteOpen(true); setMemberToDelete(member); }} />
+                                </Cell>
+                            </Row>
+                        ))}
+                    </Table>
                 </Fragment>
-                : <Text>**There are no members on the issue.**</Text>
+                : <Text>**The issue doesn't have any member**</Text>
             }
 
             {/* Delete modal */}

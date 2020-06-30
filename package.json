@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@forge/api": "^0.2.0",
-    "@forge/ui": "^0.4.0",
+    "@forge/ui": "^0.4.2",
     "await-to-js": "^2.1.1",
     "humanize-duration": "^3.23.1",
     "moment": "^2.24.0",

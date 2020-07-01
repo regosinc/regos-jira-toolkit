@@ -111,12 +111,16 @@ const App = () => {
 
     const tasksWithRemoved = storedTasks.filter(x => x.id !== taskToDelete.id);
 
-    const result = await updateTasks(issueKey, refreshedTasks);
+    logInfo(APP_TYPE.PANEL_TASKS, `Delete with these tasks: ${getPrettyfiedJSON(tasksWithRemoved)}.`);
+
+    const result = await updateTasks(issueKey, tasksWithRemoved);
+
+    logInfo(APP_TYPE.PANEL_TASKS, `Result: ${getPrettyfiedJSON(result)}.`);
 
     if (result) {
       setStoredTasks(tasksWithRemoved);
-      setTaskToDelete(null);
       setModalDeleteOpen(false);
+      setTaskToDelete(null);
     }
     //else 
     // TODO: Show notification ?

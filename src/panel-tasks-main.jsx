@@ -59,11 +59,11 @@ const App = () => {
 
     if (!isEdit) {
       const updatedTasks = await addTask(issueKey, accountId, formData.newTaskField, refreshedTasks);
-
-      setStoredTasks(updatedTasks);
+     
       setModalOpen(false);
+      setStoredTasks(updatedTasks);
 
-      logInfo(APP_TYPE.PANEL_TASKS, `Task created successfully: ${getPrettyfiedJSON(formData)}`);
+      logInfo(APP_TYPE.PANEL_TASKS, `Task created successfully: ${getPrettyfiedJSON(updatedTasks)}`);
     } else {
       // Edit Task
       const values = [...storedTasks];
@@ -74,10 +74,10 @@ const App = () => {
 
       const result = await updateTasks(issueKey, values);
 
-      if (result) {
-        setStoredTasks(values);
+      if (result) {        
         setTaskToEdit({});
         setModalOpen(false);
+        setStoredTasks(values);
         logInfo(APP_TYPE.PANEL_TASKS, `Task edited successfully: ${getPrettyfiedJSON(formData)}`);
       } else {
         //TODO: Notify ?
@@ -117,10 +117,10 @@ const App = () => {
 
     logInfo(APP_TYPE.PANEL_TASKS, `Result: ${getPrettyfiedJSON(result)}.`);
 
-    if (result) {
-      setStoredTasks(tasksWithRemoved);
+    if (result) {      
       setModalDeleteOpen(false);
       setTaskToDelete(null);
+      setStoredTasks(tasksWithRemoved);
     }
     //else 
     // TODO: Show notification ?
@@ -209,7 +209,7 @@ const App = () => {
                 <Button text="✎" onClick={() => editButtonClicked(task) } />
               </Cell>
               <Cell>
-                <Button text="⨯" onClick={() => { setModalDeleteOpen(true); setTaskToDelete(task); }} />
+                <Button text="⨯" onClick={() => { setTaskToDelete(task); setModalDeleteOpen(true);  }} />
               </Cell>
             </Row>
           ))}

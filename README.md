@@ -9,7 +9,7 @@ See [developer.atlassian.com/platform/forge/](https://developer.atlassian.com/pl
 If you have issues during the login on Forge, as for 06/06/20 we need to add this env vars in your development environment:
 
 ```
-export FORGE_EMAIL=[rds]@gmail.com // RDS gmail account is the only one with access to Forge beta right now
+export FORGE_EMAIL= // Email account with access to Forge beta
 export FORGE_API_TOKEN= //Generated Token from the atlassian user 
 ```
 
